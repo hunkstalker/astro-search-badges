@@ -5,8 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/SearchBadges.astro",
-    "./types": "./src/types.ts",
-    "./utils": "./src/utils/filtering.ts"
+    "./types": "./src/types.ts"
   },
   "files": [
     "src"
