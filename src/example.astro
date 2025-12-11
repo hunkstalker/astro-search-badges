@@ -1,0 +1,137 @@
+---
+/**
+ * Example usage of SearchBadges component
+ * This shows how to integrate with Pagefind search
+ */
+import SearchBadges from './SearchBadges.astro'
+
+// Define your filters
+const filters = {
+	til: {
+		keys: ['til'],
+		label: 'blog.til',
+		badge: 'TIL',
+		color: 'emerald',
+		filterType: 'til'
+	},
+	projects: {
+		keys: { es: 'proyectos', en: 'projects', ca: 'projectes' },
+		label: 'nav.projects',
+		badge: 'PRO',
+		color: 'blue',
+		filterType: 'project'
+	},
+	blog: {
+		keys: ['blog', 'devlog'],
+		label: 'blog.series',
+		badge: 'DEV',
+		color: 'purple',
+		filterType: 'blog'
+	}
+}
+
+// Translations (optional)
+const translations = {
+	en: {
+		'blog.til': 'Today I Learned',
+		'nav.projects': 'Projects',
+		'blog.series': 'DevLogs',
+		'search.in': 'in'
+	},
+	es: {
+		'blog.til': 'Notas TIL',
+		'nav.projects': 'Proyectos',
+		'blog.series': 'DevLogs',
+		'search.in': 'en'
+	}
+}
+
+const lang = 'en'
+---
+
+<div class="search-container">
+	<SearchBadges 
+		{filters}
+		{lang}
+		{translations}
+		placeholder="Search..."
+	/>
+	
+	<!-- Results container -->
+	<div id="search-results"></div>
+</div>
+
+<script>
+	// Integration with Pagefind
+	const input = document.getElementById('search-badges-input') as HTMLInputElement
+	const resultsContainer = document.getElementById('search-results')
+	
+	if (input && resultsContainer) {
+		// Listen for search input
+		input.addEventListener('searchInput', async (e: any) => {
+			const { value, activeFilter } = e.detail
+			
+			if (!value.trim()) {
+				resultsContainer.innerHTML = ''
+				return
+			}
+			
+			// @ts-ignore - Pagefind injected globally
+			const search = await window.pagefind.search(value)
+			let results = await Promise.all(search.results.map((r: any) => r.data()))
+			
+			// Filter by active badge if exists
+			if (activeFilter) {
+				results = results.filter((r: any) => 
+					r.filters.type?.includes(activeFilter)
+				)
+			}
+			
+			// Render results
+			resultsContainer.innerHTML = results
+				.map((r: any) => `
+					<div class="result">
+						<h3>${r.meta.title}</h3>
+						<p>${r.excerpt}</p>
+					</div>
+				`)
+				.join('')
+		})
+		
+		// Listen for badge events
+		input.addEventListener('badgeCreated', (e: any) => {
+			console.log('Badge created:', e.detail.filterType)
+			// Re-run search with filter
+			input.dispatchEvent(new Event('input', { bubbles: true }))
+		})
+		
+		input.addEventListener('badgeRemoved', () => {
+			console.log('Badge removed')
+			// Re-run search without filter
+			input.dispatchEvent(new Event('input', { bubbles: true }))
+		})
+	}
+</script>
+
+<style>
+	.search-container {
+		max-width: 600px;
+		margin: 0 auto;
+	}
+	
+	.result {
+		padding: 1rem;
+		border-bottom: 1px solid #eee;
+	}
+	
+	.result h3 {
+		margin: 0 0 0.5rem 0;
+		color: #333;
+	}
+	
+	.result p {
+		margin: 0;
+		color: #666;
+		font-size: 0.875rem;
+	}
+</style>

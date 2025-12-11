@@ -1,0 +1,218 @@
+---
+import type { SearchBadgesProps } from './types'
+
+interface Props extends SearchBadgesProps {}
+
+const { filters, lang, translations, placeholder = 'Search...' } = Astro.props
+---
+
+<div class="search-badges-container relative">
+	<!-- Badge Container (appears when active) -->
+	<div id="filter-badge-container" class="absolute left-10 top-1 hidden z-10">
+		<!-- Badge injected here dynamically -->
+	</div>
+	
+	<!-- Ghost Suggestion (appears when typing keyword) -->
+	<div id="filter-suggestion" class="pointer-events-none absolute left-10 top-1 hidden opacity-40 z-10">
+		<span class="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-medium text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400"></span>
+	</div>
+	
+	<!-- Search Input -->
+	<input
+		id="search-badges-input"
+		type="text"
+		placeholder={placeholder}
+		class="w-full rounded-xl border border-zinc-200 bg-zinc-100 py-2 pl-10 pr-4 text-sm text-zinc-800 placeholder:text-zinc-500 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-200 dark:placeholder:text-zinc-400"
+	/>
+</div>
+
+<script define:vars={{ filters, lang, translations }}>
+	// === Type Definitions ===
+	interface FilterConfig {
+		keys: string[] | Record<string, string>
+		label: string
+		badge: string
+		color: string
+		filterType: string
+	}
+
+	interface Suggestion {
+		keyword: string
+		config: FilterConfig
+	}
+
+	// === State ===
+	let activeFilter: string | null = null
+	let activeFilterConfig: FilterConfig | null = null
+	let currentSuggestion: Suggestion | null = null
+
+	// === DOM Elements ===
+	const input = document.getElementById('search-badges-input') as HTMLInputElement
+	const badgeContainer = document.getElementById('filter-badge-container')
+	const suggestionContainer = document.getElementById('filter-suggestion')
+
+	if (!input || !badgeContainer || !suggestionContainer) {
+		console.error('SearchBadges: Required DOM elements not found')
+	}
+
+	// === Utility Functions ===
+	
+	function getTranslation(key: string): string {
+		if (!translations || !translations[lang]) return key
+		return translations[lang][key] || key
+	}
+
+	function detectKeyword(inputValue: string): Suggestion | null {
+		const lowerValue = inputValue.toLowerCase().trim()
+		
+		for (const [, config] of Object.entries(filters)) {
+			const keys = Array.isArray(config.keys) ? config.keys : [config.keys[lang] || '']
+			
+			for (const key of keys) {
+				const lowerKey = key.toLowerCase()
+				if (lowerKey.startsWith(lowerValue) && lowerValue.length > 0 && lowerValue.length < lowerKey.length) {
+					return { keyword: key, config }
+				}
+			}
+		}
+		
+		return null
+	}
+
+	function showSuggestion(keyword: string, config: FilterConfig) {
+		if (!suggestionContainer) return
+		
+		const span = suggestionContainer.querySelector('span')
+		if (span) {
+			span.textContent = config.badge
+			suggestionContainer.classList.remove('hidden')
+			currentSuggestion = { keyword, config }
+		}
+	}
+
+	function hideSuggestion() {
+		if (!suggestionContainer) return
+		suggestionContainer.classList.add('hidden')
+		currentSuggestion = null
+	}
+
+	function createActiveBadge(config: FilterConfig) {
+		if (!badgeContainer || !input) return
+		
+		activeFilter = config.filterType
+		activeFilterConfig = config
+		
+		// Color classes
+		const colorClasses = {
+			emerald: 'bg-emerald-100 text-emerald-700 border border-emerald-600 dark:bg-emerald-900/50 dark:text-emerald-300 dark:border-emerald-700',
+			blue: 'bg-blue-100 text-blue-700 border border-blue-600 dark:bg-blue-900/50 dark:text-blue-300 dark:border-blue-700',
+			purple: 'bg-purple-100 text-purple-700 border border-purple-600 dark:bg-purple-900/50 dark:text-purple-300 dark:border-purple-700'
+		}
+		
+		const badge = document.createElement('div')
+		badge.className = `inline-flex items-center justify-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium min-w-[2.5rem] ${colorClasses[config.color] || colorClasses.blue}`
+		badge.textContent = config.badge
+		
+		badgeContainer.innerHTML = ''
+		badgeContainer.appendChild(badge)
+		badgeContainer.classList.remove('hidden')
+		
+		hideSuggestion()
+		
+		// Adjust input padding
+		input.style.paddingLeft = '5.5rem'
+		
+		// Update placeholder
+		const translatedLabel = getTranslation(config.label)
+		const inPreposition = getTranslation('search.in') || 'in'
+		input.placeholder = `${placeholder} ${inPreposition} ${translatedLabel}...`
+		
+		// Dispatch custom event
+		input.dispatchEvent(new CustomEvent('badgeCreated', { 
+			detail: { filterType: config.filterType, config } 
+		}))
+	}
+
+	function removeActiveBadge() {
+		if (!badgeContainer || !input) return
+		
+		badgeContainer.innerHTML = ''
+		badgeContainer.classList.add('hidden')
+		activeFilter = null
+		activeFilterConfig = null
+		
+		// Restore input
+		input.style.paddingLeft = '2.5rem'
+		input.placeholder = placeholder
+		
+		// Dispatch custom event
+		input.dispatchEvent(new CustomEvent('badgeRemoved'))
+	}
+
+	// === Event Listeners ===
+	
+	if (input) {
+		// Input event
+		input.addEventListener('input', (e) => {
+			const val = (e.target as HTMLInputElement).value
+			
+			if (!activeFilter) {
+				const detected = detectKeyword(val)
+				if (detected) {
+					showSuggestion(detected.keyword, detected.config)
+				} else {
+					hideSuggestion()
+				}
+			}
+			
+			// Dispatch search event
+			input.dispatchEvent(new CustomEvent('searchInput', { 
+				detail: { value: val, activeFilter } 
+			}))
+		})
+
+		// Keydown event
+		input.addEventListener('keydown', (e) => {
+			// Tab: Autocomplete
+			if (e.key === 'Tab' && currentSuggestion && !activeFilter) {
+				e.preventDefault()
+				createActiveBadge(currentSuggestion.config)
+				input.value = ''
+			}
+			
+			// Backspace: Remove badge when input is empty
+			if (e.key === 'Backspace' && !input.value && activeFilter) {
+				e.preventDefault()
+				removeActiveBadge()
+			}
+			
+			// Delete: Clear all
+			if (e.key === 'Delete') {
+				e.preventDefault()
+				removeActiveBadge()
+				hideSuggestion()
+				input.value = ''
+			}
+		})
+	}
+
+	// === Public API ===
+	// Expose methods for external use
+	if (input) {
+		(input as any).searchBadges = {
+			getActiveFilter: () => activeFilter,
+			getActiveConfig: () => activeFilterConfig,
+			removeFilter: removeActiveBadge,
+			createFilter: (filterKey: string) => {
+				const config = filters[filterKey]
+				if (config) createActiveBadge(config)
+			}
+		}
+	}
+</script>
+
+<style>
+	.search-badges-container {
+		position: relative;
+	}
+</style>
