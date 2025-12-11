@@ -26,7 +26,7 @@ const { filters, lang, translations, placeholder = 'Search...' } = Astro.props
 	/>
 </div>
 
-<script define:vars={{ filters, lang, translations }}>
+<script define:vars={{ filters, lang, translations }} lang="ts">
 	// === Type Definitions ===
 	interface FilterConfig {
 		keys: string[] | Record<string, string>
