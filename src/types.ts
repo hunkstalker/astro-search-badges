@@ -31,6 +31,8 @@ export interface SearchBadgesProps {
 	translations?: Translations
 	/** Placeholder text override */
 	placeholder?: string
+	/** Custom CSS class for the input element */
+	inputClass?: string
 }
 
 /**

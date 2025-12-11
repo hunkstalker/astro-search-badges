@@ -3,18 +3,24 @@ import type { SearchBadgesProps } from './types'
 
 interface Props extends SearchBadgesProps {}
 
-const { filters, lang, translations, placeholder = 'Search...' } = Astro.props
+const { filters, lang, translations, placeholder = 'Search...', inputClass } = Astro.props
+
+const defaultInputClass = "w-full rounded-xl border border-zinc-200 bg-zinc-100 py-2 pl-10 pr-4 text-sm text-zinc-800 placeholder:text-zinc-500 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-200 dark:placeholder:text-zinc-400"
 ---
 
 <div class="search-badges-container relative">
 	<!-- Badge Container (appears when active) -->
-	<div id="filter-badge-container" class="absolute left-10 top-1 hidden z-10">
+	<div id="filter-badge-container" class="absolute left-10 top-1 hidden z-10 select-none">
 		<!-- Badge injected here dynamically -->
 	</div>
 	
 	<!-- Ghost Suggestion (appears when typing keyword) -->
-	<div id="filter-suggestion" class="pointer-events-none absolute left-10 top-1 hidden opacity-40 z-10">
-		<span class="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-medium text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400"></span>
+	<div 
+		id="filter-suggestion" 
+		class="absolute left-10 top-1 hidden z-10 cursor-pointer select-none opacity-40 xl:pointer-events-none"
+		title="Tap to filter"
+	>
+		<span class="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-medium text-zinc-500 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"></span>
 	</div>
 	
 	<!-- Search Input -->
@@ -22,7 +28,8 @@ const { filters, lang, translations, placeholder = 'Search...' } = Astro.props
 		id="search-badges-input"
 		type="text"
 		placeholder={placeholder}
-		class="w-full rounded-xl border border-zinc-200 bg-zinc-100 py-2 pl-10 pr-4 text-sm text-zinc-800 placeholder:text-zinc-500 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-200 dark:placeholder:text-zinc-400"
+		class={inputClass || defaultInputClass}
+		autocomplete="off"
 	/>
 </div>
 
@@ -110,8 +117,15 @@ const { filters, lang, translations, placeholder = 'Search...' } = Astro.props
 		}
 		
 		const badge = document.createElement('div')
-		badge.className = `inline-flex items-center justify-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium min-w-[2.5rem] ${colorClasses[config.color] || colorClasses.blue}`
+		badge.className = `inline-flex items-center justify-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium min-w-[2.5rem] cursor-pointer hover:opacity-80 ${colorClasses[config.color] || colorClasses.blue}`
 		badge.textContent = config.badge
+		
+		// Allow clicking badge to remove it
+		badge.onclick = (e) => {
+			e.stopPropagation()
+			removeActiveBadge()
+			input.focus()
+		}
 		
 		badgeContainer.innerHTML = ''
 		badgeContainer.appendChild(badge)
@@ -147,14 +161,45 @@ const { filters, lang, translations, placeholder = 'Search...' } = Astro.props
 		
 		// Dispatch custom event
 		input.dispatchEvent(new CustomEvent('badgeRemoved'))
+		
+		// Trigger search update
+		input.dispatchEvent(new CustomEvent('searchInput', { 
+			detail: { value: input.value, activeFilter: null } 
+		}))
 	}
 
 	// === Event Listeners ===
 	
 	if (input) {
+		// Suggestion Click/Touch
+		if (suggestionContainer) {
+			const activateSuggestion = (e) => {
+				e.preventDefault()
+				e.stopPropagation()
+				if (currentSuggestion) {
+					createActiveBadge(currentSuggestion.config)
+					input.value = ''
+					input.focus()
+				}
+			}
+			
+			suggestionContainer.addEventListener('mousedown', activateSuggestion)
+			suggestionContainer.addEventListener('touchstart', activateSuggestion)
+		}
+
 		// Input event
 		input.addEventListener('input', (e) => {
 			const val = (e.target as HTMLInputElement).value
+			
+			// Auto-convert on space if suggestion active
+			if (val.endsWith(' ') && currentSuggestion && !activeFilter) {
+				const trimmed = val.trim().toLowerCase()
+				if (currentSuggestion.keyword.toLowerCase().startsWith(trimmed)) {
+					createActiveBadge(currentSuggestion.config)
+					input.value = ''
+					return
+				}
+			}
 			
 			if (!activeFilter) {
 				const detected = detectKeyword(val)
