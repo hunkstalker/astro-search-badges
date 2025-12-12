@@ -130,11 +130,27 @@ const baseInputClass = "rounded-xl border border-zinc-200 bg-zinc-100 py-2 pl-10
 		badge.className = `inline-flex items-center justify-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium min-w-[2.5rem] cursor-pointer hover:opacity-80 ${colorClasses[config.color] || colorClasses.blue}`
 		badge.textContent = config.badge
 		
-		// Allow clicking badge to remove it
-		badge.onclick = (e) => {
+		// Accessibility attributes
+		badge.setAttribute('role', 'button')
+		badge.setAttribute('tabindex', '0')
+		badge.setAttribute('aria-label', `Remove filter ${config.label}`)
+
+		// Event handler logic
+		const handleRemove = (e) => {
 			e.stopPropagation()
 			removeActiveBadge()
 			input.focus()
+		}
+
+		// Click support
+		badge.onclick = handleRemove
+
+		// Keyboard support (Enter/Space)
+		badge.onkeydown = (e) => {
+			if (e.key === 'Enter' || e.key === ' ') {
+				e.preventDefault()
+				handleRemove(e)
+			}
 		}
 		
 		badgeContainer.innerHTML = ''
@@ -204,6 +220,12 @@ const baseInputClass = "rounded-xl border border-zinc-200 bg-zinc-100 py-2 pl-10
 			
 			suggestionContainer.addEventListener('mousedown', activateSuggestion)
 			suggestionContainer.addEventListener('touchstart', activateSuggestion)
+			
+			// Add keyboard support for suggestions if they become focusable
+			// Note: Currently suggestion is absolute positioned and might not be in tab flow easily without manual management
+			// But if we make it focusable or handle arrow keys from input, we need this action.
+			// Ideally, arrow keys from input should select suggestion.
+
 		}
 
 		// Input event
