@@ -31,8 +31,16 @@ export interface SearchBadgesProps {
 	translations?: Translations
 	/** Placeholder text override */
 	placeholder?: string
-	/** Custom CSS class for the input element */
-	inputClass?: string
+	/** Width class (default: w-full) */
+	width?: string
+	/** Focus ring color class (default: focus:ring-blue-500) */
+	focusRingClass?: string
+	/** Padding left when badge is active (e.g. '5.5rem') */
+	badgePadding?: string
+	/** Enable global keyboard shortcut (Cmd/Ctrl + K) (default: true) */
+	enableShortcut?: boolean
+	/** Force shortcut style (default: 'auto') */
+	shortcutStyle?: 'mac' | 'win'
 }
 
 /**
