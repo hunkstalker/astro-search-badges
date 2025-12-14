@@ -1,38 +1,38 @@
 {
-  "name": "astro-search-badges",
-  "version": "0.1.0",
-  "description": "Beautiful search filter badges with Tab autocomplete for Astro + Pagefind",
-  "type": "module",
-  "exports": {
-    ".": "./src/SearchBadges.astro",
-    "./types": "./src/types.ts"
-  },
-  "files": [
-    "src"
-  ],
-  "keywords": [
-    "astro",
-    "astro-component",
-    "pagefind",
-    "search",
-    "autocomplete",
-    "badges",
-    "filter"
-  ],
-  "author": "Denis Anfruns (https://github.com/hunkstalker)",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/hunkstalker/astro-search-badges.git"
-  },
-  "bugs": {
-    "url": "https://github.com/hunkstalker/astro-search-badges/issues"
-  },
-  "homepage": "https://github.com/hunkstalker/astro-search-badges#readme",
-  "peerDependencies": {
-    "astro": "^5.0.0"
-  },
-  "devDependencies": {
-    "astro": "^5.16.3"
-  }
+	"name": "astro-search-badges",
+	"version": "0.1.0",
+	"description": "Beautiful search filter badges with Tab autocomplete for Astro + Pagefind",
+	"type": "module",
+	"exports": {
+		".": "./src/SearchBadges.astro",
+		"./types": "./src/types.ts"
+	},
+	"files": [
+		"src"
+	],
+	"keywords": [
+		"astro",
+		"astro-component",
+		"pagefind",
+		"search",
+		"autocomplete",
+		"badges",
+		"filter"
+	],
+	"author": "Denis Anfruns (https://github.com/hunkstalker)",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/hunkstalker/astro-search-badges.git"
+	},
+	"bugs": {
+		"url": "https://github.com/hunkstalker/astro-search-badges/issues"
+	},
+	"homepage": "https://github.com/hunkstalker/astro-search-badges#readme",
+	"peerDependencies": {
+		"astro": "^5.0.0"
+	},
+	"devDependencies": {
+		"astro": "^5.16.3"
+	}
 }

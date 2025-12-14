@@ -3,38 +3,44 @@ import type { SearchBadgesProps } from './types'
 
 interface Props extends SearchBadgesProps {}
 
-const { 
-	filters, 
-	lang, 
+const {
+	filters,
+	lang,
 	placeholder,
-	translations, 
+	translations,
 	width = 'w-full',
 	focusRingClass = 'focus:ring-blue-500',
 	badgePadding = '5.5rem',
 	enableShortcut = true,
-	shortcutStyle = 'win'
+	shortcutStyle = 'win',
 } = Astro.props
 
 const initialShortcutText = shortcutStyle === 'mac' ? '⌘K' : 'Ctrl K'
 
-const baseInputClass = "rounded-xl border border-zinc-200 bg-zinc-100 py-2 pl-10 text-sm text-zinc-800 placeholder:text-zinc-500 focus:border-transparent focus:outline-none focus:ring-2 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-200 dark:placeholder:text-zinc-400"
+const baseInputClass =
+	'rounded-xl border border-zinc-200 bg-zinc-100 py-2 pl-10 text-sm text-zinc-800 placeholder:text-zinc-500 focus:border-transparent focus:outline-none focus:ring-2 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-200 dark:placeholder:text-zinc-400'
 ---
 
 <div class="search-badges-container relative">
 	<!-- Badge Container (appears when active) -->
-	<div id="filter-badge-container" class="absolute left-10 top-4 -translate-y-1/2 hidden z-10 select-none">
+	<div
+		id="filter-badge-container"
+		class="absolute left-10 top-4 z-10 hidden -translate-y-1/2 select-none"
+	>
 		<!-- Badge injected here dynamically -->
 	</div>
-	
+
 	<!-- Ghost Suggestion (appears when typing keyword) -->
-	<div 
-		id="filter-suggestion" 
-		class="absolute left-10 top-4 -translate-y-1/2 hidden z-10 cursor-pointer select-none opacity-40 xl:pointer-events-none"
+	<div
+		id="filter-suggestion"
+		class="absolute left-10 top-4 z-10 hidden -translate-y-1/2 cursor-pointer select-none opacity-40 xl:pointer-events-none"
 		title="Tap to filter"
 	>
-		<span class="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1 text-[10px] font-medium text-zinc-500 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"></span>
+		<span
+			class="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1 text-[10px] font-medium text-zinc-500 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+		></span>
 	</div>
-	
+
 	<!-- Search Input -->
 	<input
 		id="search-badges-input"
@@ -43,17 +49,24 @@ const baseInputClass = "rounded-xl border border-zinc-200 bg-zinc-100 py-2 pl-10
 		class={`${width} ${baseInputClass} ${focusRingClass}`}
 		autocomplete="off"
 	/>
-	{enableShortcut && (
-		<div class="absolute right-2 top-2 flex items-center gap-1 z-10 pointer-events-none">
-			<span
-				id="search-badges-shortcut"
-				class="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-medium text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400"
-			>{initialShortcutText}</span>
-		</div>
-	)}
+	{
+		enableShortcut && (
+			<div class="pointer-events-none absolute right-2 top-2 z-10 flex items-center gap-1">
+				<span
+					id="search-badges-shortcut"
+					class="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-medium text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400"
+				>
+					{initialShortcutText}
+				</span>
+			</div>
+		)
+	}
 </div>
 
-<script is:inline define:vars={{ filters, lang, translations, badgePadding, enableShortcut, shortcutStyle }}>
+<script
+	is:inline
+	define:vars={{ filters, lang, translations, badgePadding, enableShortcut, shortcutStyle }}
+>
 	// @ts-nocheck
 	// === DOM References ===
 	// Note: IDs are global. Ideally this should use classes relative to the component root
@@ -61,8 +74,8 @@ const baseInputClass = "rounded-xl border border-zinc-200 bg-zinc-100 py-2 pl-10
 	const badgeContainer = document.getElementById('filter-badge-container')
 	const suggestionContainer = document.getElementById('filter-suggestion')
 
-	if (!input) console.error('[SearchBadges] Input element not found! Script will fail.');
-	
+	if (!input) console.error('[SearchBadges] Input element not found! Script will fail.')
+
 	// Store original placeholder
 	const placeholder = input ? input.placeholder : ''
 
@@ -72,7 +85,7 @@ const baseInputClass = "rounded-xl border border-zinc-200 bg-zinc-100 py-2 pl-10
 	let currentSuggestion = null
 
 	// === Utility Functions ===
-	
+
 	function getTranslation(key) {
 		if (!translations || !translations[lang]) return key
 		return translations[lang][key] || key
@@ -80,11 +93,11 @@ const baseInputClass = "rounded-xl border border-zinc-200 bg-zinc-100 py-2 pl-10
 
 	function detectKeyword(inputValue) {
 		const lowerValue = inputValue.toLowerCase().trim()
-		
+
 		for (const [, config] of Object.entries(filters)) {
 			// Handle keys (string or object)
 			const keys = Array.isArray(config.keys) ? config.keys : [config.keys[lang] || '']
-			
+
 			for (const key of keys) {
 				const lowerKey = key.toLowerCase()
 				if (lowerKey.startsWith(lowerValue) && lowerValue.length > 0) {
@@ -92,13 +105,13 @@ const baseInputClass = "rounded-xl border border-zinc-200 bg-zinc-100 py-2 pl-10
 				}
 			}
 		}
-		
+
 		return null
 	}
 
 	function showSuggestion(keyword, config) {
 		if (!suggestionContainer) return
-		
+
 		const span = suggestionContainer.querySelector('span')
 		if (span) {
 			span.textContent = config.badge
@@ -115,21 +128,23 @@ const baseInputClass = "rounded-xl border border-zinc-200 bg-zinc-100 py-2 pl-10
 
 	function createActiveBadge(config) {
 		if (!badgeContainer || !input) return
-		
+
 		activeFilter = config.filterType
 		activeFilterConfig = config
-		
+
 		// Color classes matching the Tailwind config
 		const colorClasses = {
-			emerald: 'bg-emerald-100 text-emerald-700 border border-emerald-600 dark:bg-emerald-900/50 dark:text-emerald-300 dark:border-emerald-700',
+			emerald:
+				'bg-emerald-100 text-emerald-700 border border-emerald-600 dark:bg-emerald-900/50 dark:text-emerald-300 dark:border-emerald-700',
 			blue: 'bg-blue-100 text-blue-700 border border-blue-600 dark:bg-blue-900/50 dark:text-blue-300 dark:border-blue-700',
-			purple: 'bg-purple-100 text-purple-700 border border-purple-600 dark:bg-purple-900/50 dark:text-purple-300 dark:border-purple-700'
+			purple:
+				'bg-purple-100 text-purple-700 border border-purple-600 dark:bg-purple-900/50 dark:text-purple-300 dark:border-purple-700',
 		}
-		
+
 		const badge = document.createElement('div')
 		badge.className = `inline-flex items-center justify-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium min-w-[2.5rem] cursor-pointer hover:opacity-80 ${colorClasses[config.color] || colorClasses.blue}`
 		badge.textContent = config.badge
-		
+
 		// Accessibility attributes
 		badge.setAttribute('role', 'button')
 		badge.setAttribute('tabindex', '0')
@@ -152,51 +167,55 @@ const baseInputClass = "rounded-xl border border-zinc-200 bg-zinc-100 py-2 pl-10
 				handleRemove(e)
 			}
 		}
-		
+
 		badgeContainer.innerHTML = ''
 		badgeContainer.appendChild(badge)
 		badgeContainer.classList.remove('hidden')
-		
+
 		hideSuggestion()
-		
+
 		// Adjust input padding to make room for badge
 		input.style.paddingLeft = badgePadding
-		
+
 		// Update placeholder with localized "in..." text
 		const translatedLabel = getTranslation(config.label)
 		// Basic translation fallback for 'search.in' if not present
 		const inPreposition = (translations[lang] && translations[lang]['nav.search.in']) || 'in'
 		input.placeholder = `${placeholder} ${inPreposition} ${translatedLabel}...`
-		
+
 		// Dispatch custom event
-		input.dispatchEvent(new CustomEvent('badgeCreated', { 
-			detail: { filterType: config.filterType, config } 
-		}))
+		input.dispatchEvent(
+			new CustomEvent('badgeCreated', {
+				detail: { filterType: config.filterType, config },
+			}),
+		)
 	}
 
 	function removeActiveBadge() {
 		if (!badgeContainer || !input) return
-		
+
 		badgeContainer.innerHTML = ''
 		badgeContainer.classList.add('hidden')
 		activeFilter = null
 		activeFilterConfig = null
-		
+
 		// Restore input
 		input.style.paddingLeft = '2.5rem'
 		input.placeholder = placeholder
-		
+
 		// Dispatch custom event
 		input.dispatchEvent(new CustomEvent('badgeRemoved'))
-		
+
 		// Trigger search update (only if we are not clearing everything)
-		input.dispatchEvent(new CustomEvent('searchInput', { 
-			detail: { value: input.value, activeFilter: null } 
-		}))
+		input.dispatchEvent(
+			new CustomEvent('searchInput', {
+				detail: { value: input.value, activeFilter: null },
+			}),
+		)
 	}
 
 	// === Event Listeners ===
-	
+
 	if (input) {
 		// Suggestion Click/Touch
 		if (suggestionContainer) {
@@ -217,21 +236,20 @@ const baseInputClass = "rounded-xl border border-zinc-200 bg-zinc-100 py-2 pl-10
 					})
 				}
 			}
-			
+
 			suggestionContainer.addEventListener('mousedown', activateSuggestion)
 			suggestionContainer.addEventListener('touchstart', activateSuggestion)
-			
+
 			// Add keyboard support for suggestions if they become focusable
 			// Note: Currently suggestion is absolute positioned and might not be in tab flow easily without manual management
 			// But if we make it focusable or handle arrow keys from input, we need this action.
 			// Ideally, arrow keys from input should select suggestion.
-
 		}
 
 		// Input event
 		input.addEventListener('input', (e) => {
 			const val = e.target.value
-			
+
 			// Auto-convert on space if suggestion active
 			if (val.endsWith(' ') && currentSuggestion && !activeFilter) {
 				const trimmed = val.trim().toLowerCase()
@@ -241,7 +259,7 @@ const baseInputClass = "rounded-xl border border-zinc-200 bg-zinc-100 py-2 pl-10
 					return
 				}
 			}
-			
+
 			if (!activeFilter) {
 				const detected = detectKeyword(val)
 				if (detected) {
@@ -250,11 +268,13 @@ const baseInputClass = "rounded-xl border border-zinc-200 bg-zinc-100 py-2 pl-10
 					hideSuggestion()
 				}
 			}
-			
+
 			// Dispatch search event
-			input.dispatchEvent(new CustomEvent('searchInput', { 
-				detail: { value: val, activeFilter } 
-			}))
+			input.dispatchEvent(
+				new CustomEvent('searchInput', {
+					detail: { value: val, activeFilter },
+				}),
+			)
 		})
 
 		// Keydown event
@@ -264,7 +284,7 @@ const baseInputClass = "rounded-xl border border-zinc-200 bg-zinc-100 py-2 pl-10
 				// console.log('[SearchBadges] Tab pressed with suggestion. Creating badge.')
 				e.preventDefault()
 				createActiveBadge(currentSuggestion.config)
-				input.value = '' 
+				input.value = ''
 				// console.log('[SearchBadges] Input cleared (sync) after Tab. Value:', input.value)
 				input.dispatchEvent(new Event('input'))
 				// Force clear in next frame too (belt and suspenders)
@@ -273,13 +293,13 @@ const baseInputClass = "rounded-xl border border-zinc-200 bg-zinc-100 py-2 pl-10
 					// console.log('[SearchBadges] Input cleared (rAF) after Tab. Value:', input.value)
 				})
 			}
-			
+
 			// Backspace: Remove badge when input is empty
 			if (e.key === 'Backspace' && !input.value && activeFilter) {
 				e.preventDefault()
 				removeActiveBadge()
 			}
-			
+
 			// Delete: Clear all
 			if (e.key === 'Delete') {
 				e.preventDefault()
@@ -300,10 +320,10 @@ const baseInputClass = "rounded-xl border border-zinc-200 bg-zinc-100 py-2 pl-10
 			createFilter: (filterKey) => {
 				const config = filters[filterKey]
 				if (config) createActiveBadge(config)
-			}
+			},
 		}
 
-	// === Global Shortcut (Cmd/Ctrl + K) ===
+		// === Global Shortcut (Cmd/Ctrl + K) ===
 		document.addEventListener('keydown', (e) => {
 			if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
 				e.preventDefault()

@@ -1,15 +1,15 @@
 {
-  "extends": "astro/tsconfigs/strict",
-  "compilerOptions": {
-    "jsx": "preserve",
-    "jsxImportSource": "astro",
-    "module": "ESNext",
-    "target": "ESNext",
-    "moduleResolution": "node",
-    "strict": true,
-    "skipLibCheck": true,
-    "types": ["astro/client"]
-  },
-  "include": ["src/**/*", "env.d.ts"],
-  "exclude": ["node_modules", "dist"]
+	"extends": "astro/tsconfigs/strict",
+	"compilerOptions": {
+		"jsx": "preserve",
+		"jsxImportSource": "astro",
+		"module": "ESNext",
+		"target": "ESNext",
+		"moduleResolution": "node",
+		"strict": true,
+		"skipLibCheck": true,
+		"types": ["astro/client"]
+	},
+	"include": ["src/**/*", "env.d.ts"],
+	"exclude": ["node_modules", "dist"]
 }
