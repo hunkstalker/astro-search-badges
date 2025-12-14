@@ -1,7 +1,7 @@
 ---
 import type { SearchBadgesProps } from './types'
 
-interface Props extends SearchBadgesProps {}
+type Props = SearchBadgesProps
 
 const {
 	filters,
@@ -65,9 +65,8 @@ const baseInputClass =
 
 <script
 	is:inline
-	define:vars={{ filters, lang, translations, badgePadding, enableShortcut, shortcutStyle }}
+	define:vars={{ filters, lang, translations, badgePadding, shortcutStyle }}
 >
-	// @ts-nocheck
 	// === DOM References ===
 	// Note: IDs are global. Ideally this should use classes relative to the component root
 	const input = document.getElementById('search-badges-input')

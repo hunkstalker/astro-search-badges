@@ -63,7 +63,8 @@ const lang = 'en'
 
 	if (input && resultsContainer) {
 		// Listen for search input
-		input.addEventListener('searchInput', async (e: any) => {
+		input.addEventListener('searchInput', async (ev) => {
+			const e = ev as CustomEvent
 			const { value, activeFilter } = e.detail
 
 			if (!value.trim()) {
@@ -71,18 +72,21 @@ const lang = 'en'
 				return
 			}
 
-			// @ts-ignore - Pagefind injected globally
+			// @ts-expect-error - Pagefind injected globally
 			const search = await window.pagefind.search(value)
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			let results = await Promise.all(search.results.map((r: any) => r.data()))
 
 			// Filter by active badge if exists
 			if (activeFilter) {
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				results = results.filter((r: any) => r.filters.type?.includes(activeFilter))
 			}
 
 			// Render results
 			resultsContainer.innerHTML = results
 				.map(
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 					(r: any) => `
 					<div class="result">
 						<h3>${r.meta.title}</h3>
@@ -94,8 +98,8 @@ const lang = 'en'
 		})
 
 		// Listen for badge events
-		input.addEventListener('badgeCreated', (e: any) => {
-			console.log('Badge created:', e.detail.filterType)
+		input.addEventListener('badgeCreated', (ev) => {
+			console.log('Badge created:', (ev as CustomEvent).detail.filterType)
 			// Re-run search with filter
 			input.dispatchEvent(new Event('input', { bubbles: true }))
 		})
