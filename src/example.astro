@@ -72,7 +72,6 @@ const lang = 'en'
 				return
 			}
 
-			// @ts-expect-error - Pagefind injected globally
 			const search = await window.pagefind.search(value)
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			let results = await Promise.all(search.results.map((r: any) => r.data()))
