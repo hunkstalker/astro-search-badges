@@ -67,278 +67,288 @@ const baseInputClass =
 	is:inline
 	define:vars={{ filters, lang, translations, badgePadding, shortcutStyle }}
 >
-	// === DOM References ===
-	// Note: IDs are global. Ideally this should use classes relative to the component root
-	const input = document.getElementById('search-badges-input')
-	const badgeContainer = document.getElementById('filter-badge-container')
-	const suggestionContainer = document.getElementById('filter-suggestion')
+	function init() {
+		// === DOM References ===
+		// Note: IDs are global. Ideally this should use classes relative to the component root
+		const input = document.getElementById('search-badges-input')
+		const badgeContainer = document.getElementById('filter-badge-container')
+		const suggestionContainer = document.getElementById('filter-suggestion')
 
-	if (!input) console.error('[SearchBadges] Input element not found! Script will fail.')
+		if (!input) {
+			// console.warn('[SearchBadges] Input element not found on this page.')
+			return
+		}
 
-	// Store original placeholder
-	const placeholder = input ? input.placeholder : ''
+		// Store original placeholder
+		const placeholder = input ? input.placeholder : ''
 
-	// === Internal State ===
-	let activeFilter = null
-	let activeFilterConfig = null
-	let currentSuggestion = null
+		// === Internal State ===
+		let activeFilter = null
+		let activeFilterConfig = null
+		let currentSuggestion = null
 
-	// === Utility Functions ===
+		// === Utility Functions ===
 
-	function getTranslation(key) {
-		if (!translations || !translations[lang]) return key
-		return translations[lang][key] || key
-	}
+		function getTranslation(key) {
+			if (!translations || !translations[lang]) return key
+			return translations[lang][key] || key
+		}
 
-	function detectKeyword(inputValue) {
-		const lowerValue = inputValue.toLowerCase().trim()
+		function detectKeyword(inputValue) {
+			const lowerValue = inputValue.toLowerCase().trim()
 
-		for (const [, config] of Object.entries(filters)) {
-			// Handle keys (string or object)
-			const keys = Array.isArray(config.keys) ? config.keys : [config.keys[lang] || '']
+			for (const [, config] of Object.entries(filters)) {
+				// Handle keys (string or object)
+				const keys = Array.isArray(config.keys) ? config.keys : [config.keys[lang] || '']
 
-			for (const key of keys) {
-				const lowerKey = key.toLowerCase()
-				if (lowerKey.startsWith(lowerValue) && lowerValue.length > 0) {
-					return { keyword: key, config }
+				for (const key of keys) {
+					const lowerKey = key.toLowerCase()
+					if (lowerKey.startsWith(lowerValue) && lowerValue.length > 0) {
+						return { keyword: key, config }
+					}
 				}
 			}
+
+			return null
 		}
 
-		return null
-	}
+		function showSuggestion(keyword, config) {
+			if (!suggestionContainer) return
 
-	function showSuggestion(keyword, config) {
-		if (!suggestionContainer) return
-
-		const span = suggestionContainer.querySelector('span')
-		if (span) {
-			span.textContent = config.badge
-			suggestionContainer.classList.remove('hidden')
-			currentSuggestion = { keyword, config }
-		}
-	}
-
-	function hideSuggestion() {
-		if (!suggestionContainer) return
-		suggestionContainer.classList.add('hidden')
-		currentSuggestion = null
-	}
-
-	function createActiveBadge(config) {
-		if (!badgeContainer || !input) return
-
-		activeFilter = config.filterType
-		activeFilterConfig = config
-
-		// Color classes matching the Tailwind config
-		const colorClasses = {
-			emerald:
-				'bg-emerald-100 text-emerald-700 border border-emerald-600 dark:bg-emerald-900/50 dark:text-emerald-300 dark:border-emerald-700',
-			blue: 'bg-blue-100 text-blue-700 border border-blue-600 dark:bg-blue-900/50 dark:text-blue-300 dark:border-blue-700',
-			purple:
-				'bg-purple-100 text-purple-700 border border-purple-600 dark:bg-purple-900/50 dark:text-purple-300 dark:border-purple-700',
-		}
-
-		const badge = document.createElement('div')
-		badge.className = `inline-flex items-center justify-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium min-w-[2.5rem] cursor-pointer hover:opacity-80 ${colorClasses[config.color] || colorClasses.blue}`
-		badge.textContent = config.badge
-
-		// Accessibility attributes
-		badge.setAttribute('role', 'button')
-		badge.setAttribute('tabindex', '0')
-		badge.setAttribute('aria-label', `Remove filter ${config.label}`)
-
-		// Event handler logic
-		const handleRemove = (e) => {
-			e.stopPropagation()
-			removeActiveBadge()
-			input.focus()
-		}
-
-		// Click support
-		badge.onclick = handleRemove
-
-		// Keyboard support (Enter/Space)
-		badge.onkeydown = (e) => {
-			if (e.key === 'Enter' || e.key === ' ') {
-				e.preventDefault()
-				handleRemove(e)
+			const span = suggestionContainer.querySelector('span')
+			if (span) {
+				span.textContent = config.badge
+				suggestionContainer.classList.remove('hidden')
+				currentSuggestion = { keyword, config }
 			}
 		}
 
-		badgeContainer.innerHTML = ''
-		badgeContainer.appendChild(badge)
-		badgeContainer.classList.remove('hidden')
+		function hideSuggestion() {
+			if (!suggestionContainer) return
+			suggestionContainer.classList.add('hidden')
+			currentSuggestion = null
+		}
 
-		hideSuggestion()
+		function createActiveBadge(config) {
+			if (!badgeContainer || !input) return
 
-		// Adjust input padding to make room for badge
-		input.style.paddingLeft = badgePadding
+			activeFilter = config.filterType
+			activeFilterConfig = config
 
-		// Update placeholder with localized "in..." text
-		const translatedLabel = getTranslation(config.label)
-		// Basic translation fallback for 'search.in' if not present
-		const inPreposition = (translations[lang] && translations[lang]['nav.search.in']) || 'in'
-		input.placeholder = `${placeholder} ${inPreposition} ${translatedLabel}...`
+			// Color classes matching the Tailwind config
+			const colorClasses = {
+				emerald:
+					'bg-emerald-100 text-emerald-700 border border-emerald-600 dark:bg-emerald-900/50 dark:text-emerald-300 dark:border-emerald-700',
+				blue: 'bg-blue-100 text-blue-700 border border-blue-600 dark:bg-blue-900/50 dark:text-blue-300 dark:border-blue-700',
+				purple:
+					'bg-purple-100 text-purple-700 border border-purple-600 dark:bg-purple-900/50 dark:text-purple-300 dark:border-purple-700',
+			}
 
-		// Dispatch custom event
-		input.dispatchEvent(
-			new CustomEvent('badgeCreated', {
-				detail: { filterType: config.filterType, config },
-			}),
-		)
-	}
+			const badge = document.createElement('div')
+			badge.className = `inline-flex items-center justify-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium min-w-[2.5rem] cursor-pointer hover:opacity-80 ${colorClasses[config.color] || colorClasses.blue}`
+			badge.textContent = config.badge
 
-	function removeActiveBadge() {
-		if (!badgeContainer || !input) return
+			// Accessibility attributes
+			badge.setAttribute('role', 'button')
+			badge.setAttribute('tabindex', '0')
+			badge.setAttribute('aria-label', `Remove filter ${config.label}`)
 
-		badgeContainer.innerHTML = ''
-		badgeContainer.classList.add('hidden')
-		activeFilter = null
-		activeFilterConfig = null
-
-		// Restore input
-		input.style.paddingLeft = '2.5rem'
-		input.placeholder = placeholder
-
-		// Dispatch custom event
-		input.dispatchEvent(new CustomEvent('badgeRemoved'))
-
-		// Trigger search update (only if we are not clearing everything)
-		input.dispatchEvent(
-			new CustomEvent('searchInput', {
-				detail: { value: input.value, activeFilter: null },
-			}),
-		)
-	}
-
-	// === Event Listeners ===
-
-	if (input) {
-		// Suggestion Click/Touch
-		if (suggestionContainer) {
-			const activateSuggestion = (e) => {
-				e.preventDefault()
+			// Event handler logic
+			const handleRemove = (e) => {
 				e.stopPropagation()
-				if (currentSuggestion) {
-					// console.log('[SearchBadges] Suggestion activated via click/touch')
-					createActiveBadge(currentSuggestion.config)
-					input.value = ''
-					// console.log('[SearchBadges] Input cleared (sync) after click. Value:', input.value)
-					input.dispatchEvent(new Event('input'))
-					input.focus()
-					// Force clear in next frame to handle race conditions
-					requestAnimationFrame(() => {
-						input.value = ''
-						// console.log('[SearchBadges] Input cleared (rAF) after click. Value:', input.value)
-					})
-				}
-			}
-
-			suggestionContainer.addEventListener('mousedown', activateSuggestion)
-			suggestionContainer.addEventListener('touchstart', activateSuggestion)
-
-			// Add keyboard support for suggestions if they become focusable
-			// Note: Currently suggestion is absolute positioned and might not be in tab flow easily without manual management
-			// But if we make it focusable or handle arrow keys from input, we need this action.
-			// Ideally, arrow keys from input should select suggestion.
-		}
-
-		// Input event
-		input.addEventListener('input', (e) => {
-			const val = e.target.value
-
-			// Auto-convert on space if suggestion active
-			if (val.endsWith(' ') && currentSuggestion && !activeFilter) {
-				const trimmed = val.trim().toLowerCase()
-				if (currentSuggestion.keyword.toLowerCase().startsWith(trimmed)) {
-					createActiveBadge(currentSuggestion.config)
-					input.value = ''
-					return
-				}
-			}
-
-			if (!activeFilter) {
-				const detected = detectKeyword(val)
-				if (detected) {
-					showSuggestion(detected.keyword, detected.config)
-				} else {
-					hideSuggestion()
-				}
-			}
-
-			// Dispatch search event
-			input.dispatchEvent(
-				new CustomEvent('searchInput', {
-					detail: { value: val, activeFilter },
-				}),
-			)
-		})
-
-		// Keydown event
-		input.addEventListener('keydown', (e) => {
-			// Tab: Autocomplete
-			if (e.key === 'Tab' && currentSuggestion && !activeFilter) {
-				// console.log('[SearchBadges] Tab pressed with suggestion. Creating badge.')
-				e.preventDefault()
-				createActiveBadge(currentSuggestion.config)
-				input.value = ''
-				// console.log('[SearchBadges] Input cleared (sync) after Tab. Value:', input.value)
-				input.dispatchEvent(new Event('input'))
-				// Force clear in next frame too (belt and suspenders)
-				requestAnimationFrame(() => {
-					input.value = ''
-					// console.log('[SearchBadges] Input cleared (rAF) after Tab. Value:', input.value)
-				})
-			}
-
-			// Backspace: Remove badge when input is empty
-			if (e.key === 'Backspace' && !input.value && activeFilter) {
-				e.preventDefault()
 				removeActiveBadge()
-			}
-
-			// Delete: Clear all
-			if (e.key === 'Delete') {
-				e.preventDefault()
-				removeActiveBadge()
-				hideSuggestion()
-				input.value = ''
-			}
-		})
-	}
-
-	// === Public API ===
-	// Expose methods for external use
-	if (input) {
-		input.searchBadges = {
-			getActiveFilter: () => activeFilter,
-			getActiveConfig: () => activeFilterConfig,
-			removeFilter: removeActiveBadge,
-			createFilter: (filterKey) => {
-				const config = filters[filterKey]
-				if (config) createActiveBadge(config)
-			},
-		}
-
-		// === Global Shortcut (Cmd/Ctrl + K) ===
-		document.addEventListener('keydown', (e) => {
-			if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-				e.preventDefault()
 				input.focus()
 			}
-		})
 
-		// Auto-detect OS if shortcutStyle is not explicitly set to 'mac'
-		if (shortcutStyle !== 'mac') {
-			const shortcutSpan = document.getElementById('search-badges-shortcut')
-			if (shortcutSpan) {
-				const isMac = navigator.userAgent.includes('Mac')
-				shortcutSpan.textContent = isMac ? '⌘K' : 'Ctrl K'
+			// Click support
+			badge.onclick = handleRemove
+
+			// Keyboard support (Enter/Space)
+			badge.onkeydown = (e) => {
+				if (e.key === 'Enter' || e.key === ' ') {
+					e.preventDefault()
+					handleRemove(e)
+				}
+			}
+
+			badgeContainer.innerHTML = ''
+			badgeContainer.appendChild(badge)
+			badgeContainer.classList.remove('hidden')
+
+			hideSuggestion()
+
+			// Adjust input padding to make room for badge
+			input.style.paddingLeft = badgePadding
+
+			// Update placeholder with localized "in..." text
+			const translatedLabel = getTranslation(config.label)
+			// Basic translation fallback for 'search.in' if not present
+			const inPreposition = (translations[lang] && translations[lang]['nav.search.in']) || 'in'
+			input.placeholder = `${placeholder} ${inPreposition} ${translatedLabel}...`
+
+			// Dispatch custom event
+			input.dispatchEvent(
+				new CustomEvent('badgeCreated', {
+					detail: { filterType: config.filterType, config },
+				}),
+			)
+		}
+
+		function removeActiveBadge() {
+			if (!badgeContainer || !input) return
+
+			badgeContainer.innerHTML = ''
+			badgeContainer.classList.add('hidden')
+			activeFilter = null
+			activeFilterConfig = null
+
+			// Restore input
+			input.style.paddingLeft = '2.5rem'
+			input.placeholder = placeholder
+
+			// Dispatch custom event
+			input.dispatchEvent(new CustomEvent('badgeRemoved'))
+
+			// Trigger search update (only if we are not clearing everything)
+			input.dispatchEvent(
+				new CustomEvent('searchInput', {
+					detail: { value: input.value, activeFilter: null },
+				}),
+			)
+		}
+
+		// === Event Listeners ===
+
+		if (input) {
+			// Suggestion Click/Touch
+			if (suggestionContainer) {
+				const activateSuggestion = (e) => {
+					e.preventDefault()
+					e.stopPropagation()
+					if (currentSuggestion) {
+						// console.log('[SearchBadges] Suggestion activated via click/touch')
+						createActiveBadge(currentSuggestion.config)
+						input.value = ''
+						// console.log('[SearchBadges] Input cleared (sync) after click. Value:', input.value)
+						input.dispatchEvent(new Event('input'))
+						input.focus()
+						// Force clear in next frame to handle race conditions
+						requestAnimationFrame(() => {
+							input.value = ''
+							// console.log('[SearchBadges] Input cleared (rAF) after click. Value:', input.value)
+						})
+					}
+				}
+
+				suggestionContainer.addEventListener('mousedown', activateSuggestion)
+				suggestionContainer.addEventListener('touchstart', activateSuggestion)
+
+				// Add keyboard support for suggestions if they become focusable
+				// Note: Currently suggestion is absolute positioned and might not be in tab flow easily without manual management
+				// But if we make it focusable or handle arrow keys from input, we need this action.
+				// Ideally, arrow keys from input should select suggestion.
+			}
+
+			// Input event
+			input.addEventListener('input', (e) => {
+				const val = e.target.value
+
+				// Auto-convert on space if suggestion active
+				if (val.endsWith(' ') && currentSuggestion && !activeFilter) {
+					const trimmed = val.trim().toLowerCase()
+					if (currentSuggestion.keyword.toLowerCase().startsWith(trimmed)) {
+						createActiveBadge(currentSuggestion.config)
+						input.value = ''
+						return
+					}
+				}
+
+				if (!activeFilter) {
+					const detected = detectKeyword(val)
+					if (detected) {
+						showSuggestion(detected.keyword, detected.config)
+					} else {
+						hideSuggestion()
+					}
+				}
+
+				// Dispatch search event
+				input.dispatchEvent(
+					new CustomEvent('searchInput', {
+						detail: { value: val, activeFilter },
+					}),
+				)
+			})
+
+			// Keydown event
+			input.addEventListener('keydown', (e) => {
+				// Tab: Autocomplete
+				if (e.key === 'Tab' && currentSuggestion && !activeFilter) {
+					// console.log('[SearchBadges] Tab pressed with suggestion. Creating badge.')
+					e.preventDefault()
+					createActiveBadge(currentSuggestion.config)
+					input.value = ''
+					// console.log('[SearchBadges] Input cleared (sync) after Tab. Value:', input.value)
+					input.dispatchEvent(new Event('input'))
+					// Force clear in next frame too (belt and suspenders)
+					requestAnimationFrame(() => {
+						input.value = ''
+						// console.log('[SearchBadges] Input cleared (rAF) after Tab. Value:', input.value)
+					})
+				}
+
+				// Backspace: Remove badge when input is empty
+				if (e.key === 'Backspace' && !input.value && activeFilter) {
+					e.preventDefault()
+					removeActiveBadge()
+				}
+
+				// Delete: Clear all
+				if (e.key === 'Delete') {
+					e.preventDefault()
+					removeActiveBadge()
+					hideSuggestion()
+					input.value = ''
+				}
+			})
+		}
+
+		// === Public API ===
+		// Expose methods for external use
+		if (input) {
+			input.searchBadges = {
+				getActiveFilter: () => activeFilter,
+				getActiveConfig: () => activeFilterConfig,
+				removeFilter: removeActiveBadge,
+				createFilter: (filterKey) => {
+					const config = filters[filterKey]
+					if (config) createActiveBadge(config)
+				},
+			}
+
+			// === Global Shortcut (Cmd/Ctrl + K) ===
+			const handleGlobalKeydown = (e) => {
+				if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+					e.preventDefault()
+					const currentInput = document.getElementById('search-badges-input')
+					if(currentInput) currentInput.focus()
+				}
+			}
+			document.addEventListener('keydown', handleGlobalKeydown)
+
+			// Auto-detect OS if shortcutStyle is not explicitly set to 'mac'
+			if (shortcutStyle !== 'mac') {
+				const shortcutSpan = document.getElementById('search-badges-shortcut')
+				if (shortcutSpan) {
+					const isMac = navigator.userAgent.includes('Mac')
+					shortcutSpan.textContent = isMac ? '⌘K' : 'Ctrl K'
+				}
 			}
 		}
 	}
+
+	// Run on initial load
+	init()
 </script>
 
 <style>
