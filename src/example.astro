@@ -7,12 +7,12 @@ import SearchBadges from './SearchBadges.astro'
 
 // Define your filters
 const filters = {
-	til: {
-		keys: ['til'],
-		label: 'blog.til',
-		badge: 'TIL',
+	notes: {
+		keys: { es: 'notas', en: 'notes', ca: 'notes' },
+		label: 'blog.note',
+		badge: 'NOTE',
 		color: 'emerald',
-		filterType: 'til',
+		filterType: 'note',
 	},
 	projects: {
 		keys: { es: 'proyectos', en: 'projects', ca: 'projectes' },
@@ -33,13 +33,19 @@ const filters = {
 // Translations (optional)
 const translations = {
 	en: {
-		'blog.til': 'Today I Learned',
+		'blog.note': 'Notes',
 		'nav.projects': 'Projects',
 		'blog.series': 'DevLogs',
 		'search.in': 'in',
 	},
+	ca: {
+		'blog.note': 'Notes',
+		'nav.projects': 'Projectes',
+		'blog.series': 'DevLogs',
+		'search.in': 'en',
+	},
 	es: {
-		'blog.til': 'Notas TIL',
+		'blog.note': 'Notas',
 		'nav.projects': 'Proyectos',
 		'blog.series': 'DevLogs',
 		'search.in': 'en',

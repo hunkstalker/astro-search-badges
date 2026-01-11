@@ -6,7 +6,7 @@ export interface FilterConfig {
 	keys: string[] | Record<string, string>
 	/** Display label or i18n translation key */
 	label: string
-	/** Short badge text (e.g., "TIL", "PRO", "DEV") */
+	/** Short badge text (e.g., "NOTE", "PRO", "DEV") */
 	badge: string
 	/** Badge color theme */
 	color: 'emerald' | 'blue' | 'purple' | string

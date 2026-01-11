@@ -6,8 +6,8 @@ Beautiful search filter badges with Tab autocomplete for Astro + Pagefind.
 
 ## ✨ Features
 
-- 🎯 **Tab Autocomplete** - Type "ti" → Press Tab → Get "TIL" badge
-- 🎨 **Colored Badges** - Visual category indicators (TIL/Projects/Blog)
+- 🎯 **Tab Autocomplete** - Type "no" → Press Tab → Get "NOTE" badge
+- 🎨 **Colored Badges** - Visual category indicators (Notes/Projects/Blog)
 - 🌍 **i18n Ready** - Multi-language support out of the box
 - ⚡ **Fast Filtering** - Instant category-based search results
 - 🎨 **Customizable** - Adapt colors, labels, and behavior
@@ -32,7 +32,7 @@ import SearchBadges from 'astro-search-badges'
 
 <SearchBadges
 	filters={{
-		til: { keys: ['til'], badge: 'TIL', color: 'emerald', filterType: 'til' },
+		notes: { keys: ['notes'], badge: 'NOTE', color: 'emerald', filterType: 'notes' },
 		projects: {
 			keys: { es: 'proyectos', en: 'projects' },
 			badge: 'PRO',
@@ -60,7 +60,7 @@ interface SearchBadgesProps {
 interface FilterConfig {
 	keys: string[] | Record<string, string> // Keywords to detect
 	label: string // Display label or i18n key
-	badge: string // Badge text (e.g., "TIL", "PRO")
+	badge: string // Badge text (e.g., "NOTE", "PRO")
 	color: 'emerald' | 'blue' | 'purple' // Badge color
 	filterType: string // Filter value for your search backend
 }
@@ -113,7 +113,7 @@ const input = document.getElementById('search-badges-input')
 const api = input.searchBadges
 
 // Get active filter
-const activeFilter = api.getActiveFilter() // 'til' | 'project' | 'blog' | null
+const activeFilter = api.getActiveFilter() // 'notes' | 'project' | 'blog' | null
 
 // Get active config
 const config = api.getActiveConfig() // FilterConfig | null
@@ -122,7 +122,7 @@ const config = api.getActiveConfig() // FilterConfig | null
 api.removeFilter()
 
 // Create filter programmatically
-api.createFilter('til') // Creates TIL badge
+api.createFilter('notes') // Creates NOTE badge
 ```
 
 ---
@@ -136,7 +136,7 @@ api.createFilter('til') // Creates TIL badge
 import SearchBadges from 'astro-search-badges'
 
 const filters = {
-	til: { keys: ['til'], badge: 'TIL', color: 'emerald', filterType: 'til', label: 'TIL' },
+	notes: { keys: ['notes'], badge: 'NOTE', color: 'emerald', filterType: 'notes', label: 'Notes' },
 }
 ---
 
@@ -188,7 +188,7 @@ const filters = {
 const input = document.getElementById('search-badges-input')
 
 // Create badge on page load
-input.searchBadges.createFilter('til')
+input.searchBadges.createFilter('notes')
 
 // Remove on button click
 button.addEventListener('click', () => {
@@ -196,8 +196,8 @@ button.addEventListener('click', () => {
 })
 
 // Check current state
-if (input.searchBadges.getActiveFilter() === 'til') {
-	console.log('TIL filter is active')
+if (input.searchBadges.getActiveFilter() === 'notes') {
+	console.log('Notes filter is active')
 }
 ```
 
